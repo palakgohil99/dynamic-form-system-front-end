@@ -3,12 +3,11 @@ import React, { useState } from 'react';
 import InputField from '../../components/InputField';
 import Button from '../../components/Button';
 import SocialLoginButton from '../../components/SocialLoginButton';
-import { loginUser } from '../../api/AuthApi';
+import { registerUser } from '../../api/AuthApi';
 import Loader from "../../components/Loader";
-import { Link } from "react-router-dom";
-import { Mail, Lock } from 'lucide-react';
+import { Link, useNavigate } from "react-router-dom";
 
-const Login = () => {
+const Signup = () => {
   const [form, setFormData] = useState({
     email: '',
     password: '',
@@ -18,6 +17,8 @@ const Login = () => {
 
   const [loading, setLoading] = useState(false);
 
+  const navigate = useNavigate();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -25,9 +26,18 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     console.log(form);
 
     const newErrors = {};
+
+    if (!form.first_name) {
+      newErrors.first_name = "First name is required";
+    }
+
+    if (!form.last_name) {
+      newErrors.last_name = "Last name is required";
+    }
 
     if (!form.email) {
       newErrors.email = "Email is required";
@@ -48,20 +58,16 @@ const Login = () => {
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
-    } else {
-      setLoading(true);
     }
-
-
+    setLoading(true);
     try {
-      const res = await loginUser(form);
-      console.log("✅ Login Success:", res);
+      const res = await registerUser(form);
 
       // You can now store JWT token, user data etc.
       localStorage.setItem("token", res);
-      alert("Login successful!");
+      navigate("/");
     } catch (err) {
-      console.error('error: ' + JSON.stringify(err.response.data));
+      console.error('error: ' + err.response.data.message);
       setErrors({ general: err.response?.data?.message || "Something went wrong!" });
     } finally {
       setLoading(false);
@@ -69,7 +75,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="min-h-screen flex">
       {loading && <Loader />}
       {/* Left Image Section */}
       <div className="w-full md:w-1/2 bg-gray-100 flex flex-col justify-center items-center p-6 md:p-10 relative">
@@ -92,26 +98,39 @@ const Login = () => {
       </div>
 
       {/* Right Form Section */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-6 md:p-12 top-[181px] left-[764px]">
-        <div className="top-[185px] w-[460px] left-[107px] h-[36px] opacity-100 mb-8 flex justify-start">
-          <h2 className="font-base font-semibold text-4xl leading-9 tracking-normal text-gray-900">
-            Let’s get started!
+      <div className="w-full md:w-1/2 flex flex-col justify-center items-center p-6 md:p-12 top-[181px] left-[764px] w-[676px]">
+        <div className="top-[185px] w-[470px] left-[107px] h-[36px] opacity-100 mb-8 flex justify-start">
+          <h2 className="opacity-100 absolute font-semibold text-4xl leading-9 tracking-normal font-base">
+            Create an account.
           </h2>
         </div>
-        <div className="top-[185px] w-[460px] left-[107px] h-[36px] opacity-100 mb-8 flex justify-start">
+        <div className="top-[185px] w-[470px] left-[107px] h-[36px] opacity-100 mb-5 flex justify-start">
           <h3 className="font-semibold text-xl leading-7 tracking-normal text-gray-900">
-            Sign in to Credentialing & Certification Services
+            Sign up to Credentialing & Certification Services
           </h3>
         </div>
-        {/* <p className="text-gray-700 mb-6 text-center md:text-left w-[462px] h-[28px]">
-          Sign in to Credentialing & Certification Services
-        </p> */}
-        {
-          errors.general && (
-            <p className="text-red-600 mb-2 text-center md:text-left">{errors.general}</p>
-          )
-        }
-        <form onSubmit={handleSubmit} className="w-[462px] h-[390px] opacity-100 flex flex-col">
+        {errors.general && (
+          <p className="text-red-600 mb-2">{errors.general}</p>
+        )}
+        <form onSubmit={handleSubmit} className="w-[462px] h-[535px] opacity-100 flex flex-col">
+          <InputField
+            label="Enter Your First Name"
+            type="text"
+            placeholder="Enter your first name"
+            value={form.first_name}
+            onChange={handleChange}
+            name="first_name"
+          />
+          {errors.first_name && <p className="text-red-500 text-sm mt-1">{errors.first_name}</p>}
+          <InputField
+            label="Enter Your Last Name"
+            type="text"
+            placeholder="Enter your last name"
+            value={form.last_name}
+            onChange={handleChange}
+            name="last_name"
+          />
+          {errors.last_name && <p className="text-red-500 text-sm mt-1">{errors.last_name}</p>}
           <InputField
             label="Your email"
             type="text"
@@ -119,9 +138,8 @@ const Login = () => {
             value={form.email}
             onChange={handleChange}
             name="email"
-            icon={Mail}
           />
-          {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
           <InputField
             label="Your password"
             type="password"
@@ -129,19 +147,15 @@ const Login = () => {
             value={form.password}
             onChange={handleChange}
             name="password"
-            icon={Lock}
           />
-          {errors.password && <p className="text-red-500 text-sm">{errors.password}</p>}
-          <p className="text-blue-600 font-semibold font-bold text-sm mb-4 text-right cursor-pointer">
-            <Link to="/forgot-password">Forgot Password?</Link>
-          </p>
+          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
 
-          <Button type="submit">Sign in</Button>
-          <SocialLoginButton>Log in with Google →</SocialLoginButton>
-          <SocialLoginButton>Log in with CAQH ProView →</SocialLoginButton>
+          <Button type="submit">Sign Up</Button>
+          <SocialLoginButton>Sign up with Google →</SocialLoginButton>
+          <SocialLoginButton>Sign up with CAQH ProView →</SocialLoginButton>
 
           <p className="text-center text-gray-600 mt-4">
-            Not registered? <Link to="/signup" className="text-blue-600 cursor-pointer">Create account</Link>
+            Already have an account? <Link to="/" className="text-blue-600 cursor-pointer">Sign in</Link>
           </p>
         </form>
       </div>
@@ -149,4 +163,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signup;

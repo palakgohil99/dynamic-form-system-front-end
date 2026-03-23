@@ -32,7 +32,77 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
+}
+
+
+.flex-rs .rs__control {
+  width: 443px !important;
+}
+
+.flex-rs .rs__indicators {
+  display: block !important;
+}
+
+.flex-rs .rs__menu {
+  width: 443px !important;
+}
+
+.ed-flex-rs .rs__control {
+  width: 416px !important;
+}
+
+.ed-flex-rs .rs__indicators {
+  display: block !important;
+}
+
+.ed-flex-rs .rs__menu {
+  width: 416px !important;
+}
+
+.rs__control {
+  width: 904px;
+  border: 1px solid #E5E7EB !important;
+  border-radius: 12px !important;
+  margin-top: 0.7rem !important;
+  background: #F9FAFB !important;
+  box-shadow: 0px 1px 0.5px 0.05px #1D293D05 !important;
+}
+
+.rs__placeholder {
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6A7282 !important;
+}
+
+.rs__menu {
+  width: 904px !important;
+  height: 190px !important;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px !important;
+  padding: 8px !important;
+  background-color: #FFFFFF;
+  box-shadow: 0px 4px 6px 0px #0000000D;
+  box-shadow: 0px 10px 15px -3px #0000001A;  
+  color: #101828 !important;
+  font-size: 14px !important;
+  line-height: 14px !important;
+  display: block !important;
+}
+
+.rs__menu--is-selected {
+  background-color: #F3F4F6 !important;
+  border-radius: 8px;
+}
+
+.rs__indicators {
+  display: none !important;
+}
+/* Remove default react-select focus border & shadow */
+.rs__control--is-focused {
+  @apply border-gray-300 shadow-none;
 }

@@ -1,14 +1,27 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 // import DashboardLayout from "../layouts/DashboardLayout";
 import InputField from '../../components/InputField';
+import { userDetails, updateUserProfile, imageUpload, deleteAccount } from '../../api/UsersApi';
+import { useNavigate } from "react-router-dom"
+import ConfirmDialog from "../../components/ConfirmDialog";
+import toast from "react-hot-toast";
 
 const SettingsPage = () => {
+  const [user, setUser] = useState(null);
+  const fileInputRef = useRef(null);
+  const baseUrl = process.env.REACT_APP_FILE_BASE_URL
+  const navigate = useNavigate();
+  const [showDeleteAccountPopup, setShowDeleteAccountPopup] = useState(false);
+  const [showRemoveImagePopup, setShowRemoveImagePopup] = useState(false);
+
   const [form, setForm] = useState({
+    id: "",
     first_name: "",
     last_name: "",
     email: "",
     job_title: "",
     show_job_title: "",
+    profile_pic: ""
   });
 
   const handleChange = (e) => {
@@ -16,18 +29,105 @@ const SettingsPage = () => {
     setForm((s) => ({ ...s, [name]: type === "checkbox" ? checked : value }));
   };
 
-  const onSave = (e) => {
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        let userId = localStorage.getItem('user_id');
+        let result = await userDetails({ 'id': userId });
+        setUser(result.data);
+
+        if (result.data) {
+          setForm({
+            id: result.data._id || "",
+            first_name: result.data.first_name || "",
+            last_name: result.data.last_name || "",
+            email: result.data.email || "",
+            job_title: result.data.job_title || "",
+            show_job_title: result.data.show_job_title || "",
+            profile_pic: result.data.profile_pic ? `${baseUrl}uploads/${result.data.profile_pic}` : ""
+          })
+        }
+      } catch {
+        setUser(null)
+      }
+    }
+    fetchUserData()
+  }, [])
+
+  const handleFileUpload = () => {
+    fileInputRef.current.click();
+  }
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      let formdata = new FormData()
+      formdata.append('image', file)
+      formdata.append('id', form.id)
+      try {
+        let result = await imageUpload(formdata)
+        if (result && result.fileUrl) {
+          setForm(prev => ({
+            ...prev,
+            profile_pic: `${baseUrl}uploads/${result.fileUrl}`
+          }));
+        }
+        toast.success(result.message);
+      } catch (err) {
+        toast.error(err.response.data.message);
+      }
+    }
+  }
+
+  const onSave = async (e) => {
     e.preventDefault();
+
+    let formDataToSend = { ...form };
+    delete formDataToSend.profile_pic;
+
     // call API
-    console.log("save", form);
-    alert("Saved (mock)");
+    try {
+      let result = await updateUserProfile(formDataToSend);
+      if (result.data) {
+        setForm(prev => ({
+          ...prev,
+          ...result.data,
+          profile_pic: prev.profile_pic, // keep same image
+        }));
+        toast.success(result.message);
+      }
+    } catch (err) {
+      toast.error(err.response.data.message);
+    }
   };
 
-  const onCancel = (e) => {
-    e.preventDefault();
-    // reset or navigate
-    alert("Cancelled");
+  const handleConfirmDeleteAccount = async () => {
+    try {
+      let result = await deleteAccount({ id: form.id });
+      if (result) {
+        navigate('/');
+      }
+      setShowDeleteAccountPopup(false);
+      toast.success(result.message);
+    } catch (err) {
+      toast.error(err.response.data.message);
+    } 
+
   };
+
+  const handleConfirmRemoveImage = async () => {
+    try {
+      let result = await imageUpload({ remove_image: 1, id: form.id });
+      if (result) {
+        setForm({ ...form, profile_pic: "" });
+      }
+      setShowRemoveImagePopup(false);
+      toast.success(result.message);
+    } catch (err) {
+      toast.error(err.response.data.message);
+    }
+  };
+
 
   return (
     // <DashboardLayout>
@@ -85,13 +185,19 @@ const SettingsPage = () => {
         {/* Profile Picture + Buttons */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
           <div className="w-[108px] h-[108px] rounded-full border border-gray-200 bg-[#F5F5F5] flex items-center justify-center overflow-hidden">
-            <img src="/assets/user.png" alt="Avatar" className="w-full h-auto" />
+            <img src={form.profile_pic ? form.profile_pic : '/assets/user.png'} alt="Avatar" className="w-full h-auto" />
           </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            style={{ display: "none" }} // 👈 Hide the input
+          />
           <div className="flex gap-4">
-            <button className="w-[106px] h-[40px] flex items-center justify-center gap-2 px-4 py-2 rounded-[12px] border border-[#E5E7EB] bg-[#F9FAFB] shadow-sm text-sm text-[#4A5565] font-medium hover:bg-gray-100 transition">
+            <button className="w-[106px] h-[40px] flex items-center justify-center gap-2 px-4 py-2 rounded-[12px] border border-[#E5E7EB] bg-[#F9FAFB] shadow-sm text-sm text-[#4A5565] font-medium hover:bg-gray-100 transition" onClick={handleFileUpload}>
               Change
             </button>
-            <button className="w-[106px] h-[40px] flex items-center justify-center gap-2 px-4 py-2 rounded-[12px] border border-[#E5E7EB] bg-white shadow-sm text-sm text-[#4A5565] font-medium hover:bg-gray-100 transition">
+            <button className="w-[106px] h-[40px] flex items-center justify-center gap-2 px-4 py-2 rounded-[12px] border border-[#E5E7EB] bg-white shadow-sm text-sm text-[#4A5565] font-medium hover:bg-gray-100 transition" onClick={() => setShowRemoveImagePopup(true)}>
               Remove
             </button>
           </div>
@@ -154,13 +260,6 @@ const SettingsPage = () => {
           {/* Buttons */}
           <div className="flex justify-end items-center gap-4 pt-4">
             <button
-              type="button"
-              onClick={onCancel}
-              className="px-5 py-3 rounded-[12px] border border-[#E5E7EB] bg-[#F9FAFB] text-[#4A5565] text-[16px] font-medium shadow-sm hover:bg-gray-100 transition"
-            >
-              Cancel
-            </button>
-            <button
               type="submit"
               className="px-5 py-3 rounded-[12px] border border-[#1447E6] bg-[#1447E6] text-white text-[16px] font-medium shadow-sm hover:bg-[#0d3bcf] transition"
             >
@@ -185,11 +284,26 @@ const SettingsPage = () => {
             </p>
           </div>
 
-          <button className="px-5 py-3 rounded-[12px] border border-[#FBD5D5] bg-[#FDF2F2] text-[#C81E1E] text-[16px] font-medium shadow-sm hover:bg-[#FEE2E2] hover:text-[#991B1B] transition">
+          <button className="px-5 py-3 rounded-[12px] border border-[#FBD5D5] bg-[#FDF2F2] text-[#C81E1E] text-[16px] font-medium shadow-sm hover:bg-[#FEE2E2] hover:text-[#991B1B] transition" onClick={() => setShowDeleteAccountPopup(true)}>
             Delete account
           </button>
         </div>
       </div>
+      <ConfirmDialog
+        show={showDeleteAccountPopup}
+        title="Delete Account?"
+        message="Once deleted, your account cannot be recovered."
+        onConfirm={handleConfirmDeleteAccount}
+        onCancel={() => setShowDeleteAccountPopup(false)}
+      />
+
+      <ConfirmDialog
+        show={showRemoveImagePopup}
+        title="Remove Profile Image?"
+        message="Your profile will display a default avatar."
+        onConfirm={handleConfirmRemoveImage}
+        onCancel={() => setShowRemoveImagePopup(false)}
+      />
     </div>
 
     // </DashboardLayout>

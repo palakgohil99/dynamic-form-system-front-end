@@ -5,7 +5,7 @@ import Button from '../../components/Button';
 import SocialLoginButton from '../../components/SocialLoginButton';
 import { loginUser } from '../../api/AuthApi';
 import Loader from "../../components/Loader";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock } from 'lucide-react';
 
 const Login = () => {
@@ -17,6 +17,8 @@ const Login = () => {
   const [errors, setErrors] = useState({});
 
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,8 +60,15 @@ const Login = () => {
       console.log("✅ Login Success:", res);
 
       // You can now store JWT token, user data etc.
-      localStorage.setItem("token", res);
-      alert("Login successful!");
+      if(res.data.jwt_token != "") {
+        console.log('res.data: ' + res.data)
+        localStorage.setItem("token", res.data.jwt_token);
+        localStorage.setItem("user_id", res.data._id);
+        navigate("/settings");
+      } else {
+        setErrors({ general: "Invalid token or token has expired." });
+      }
+      
     } catch (err) {
       console.error('error: ' + JSON.stringify(err.response.data));
       setErrors({ general: err.response?.data?.message || "Something went wrong!" });

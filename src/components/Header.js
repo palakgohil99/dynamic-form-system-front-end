@@ -1,5 +1,6 @@
 import React from "react";
 import { Bell, LogOut } from 'lucide-react';
+import { logout } from "../utils/auth";
 
 const Header = () => {
   return (
@@ -34,7 +35,7 @@ const Header = () => {
         </div>
 
         {/* Logout Button */}
-        <button className="hidden sm:flex w-auto md:w-[101px] h-9 md:h-10 px-3 py-2 gap-2 rounded-[12px] border border-[#E5E7EB] bg-[#F9FAFB] shadow-[0px_1px_0.5px_0.05px_#1D293D05] items-center justify-center font-medium text-sm leading-5 text-[#4A5565]">
+        <button className="hidden sm:flex w-auto md:w-[101px] h-9 md:h-10 px-3 py-2 gap-2 rounded-[12px] border border-[#E5E7EB] bg-[#F9FAFB] shadow-[0px_1px_0.5px_0.05px_#1D293D05] items-center justify-center font-medium text-sm leading-5 text-[#4A5565]" onClick={logout}>
           <LogOut size={14} color="#4A5565" /> Logout
         </button>
       </div>

@@ -1,6 +1,6 @@
 // src/components/InputField.jsx
 import React from 'react';
-
+  
 const InputField = ({ label, type, placeholder, value, onChange, name, icon: Icon, className = 'input-custom'}) => (
   <div className="flex flex-col mb-4">
     <label className="h-[26px] opacity-100 text-sm font-medium leading-5 text-[#101828]" for={name}>{label}</label>

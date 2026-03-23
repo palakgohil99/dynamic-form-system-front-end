@@ -1,13 +1,16 @@
 import { React, useState } from "react";
-import { LayoutDashboard, User, Bell, Settings, ChartPie, FileText, BadgeQuestionMark, LogOut } from 'lucide-react';
-import { NavLink, useLocation } from "react-router-dom";
+import { LayoutDashboard, User, Bell, Settings, ChartPie, FileText, BadgeQuestionMark, LogOut, FilePen } from 'lucide-react';
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { logout } from "../utils/auth";
+import Button from "./Button";
 
 export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(false);
+    const navigate = useNavigate();
 
     const menu = [
         { name: "Dashboard", path: "/", icon: LayoutDashboard },
-        { name: "Sync Data", path: "/sync", icon: ChartPie },
+        { name: "Credentialing Form", path: "/application-credentialing", icon: FilePen },
         { name: "Vault", path: "/vault", icon: FileText },
         { name: "Profile", path: "/profile", icon: User },
         { name: "Notifications", path: "/notifications", icon: Bell },
@@ -55,18 +58,14 @@ export default function Sidebar() {
                         );
                     })}
                     <hr className="text-[#E5E7EB] mt-5"></hr>
-                    <NavLink
-                        to="/logout"
-                        className={({ isActive }) =>
-                            `flex items-center gap-2 p-2 rounded-md font-medium text-[15px] ${isActive
-                                ? "bg-blue-50 text-blue-600"
-                                : "text-[#4A5565] hover:bg-gray-100"
-                            }`
-                        }
+                    <button
+                        onClick={() => logout(navigate)}
+                        className="w-full text-left flex items-center gap-2 p-2 rounded-md font-medium text-[15px] text-[#4A5565] hover:bg-gray-100"
                     >
                         <LogOut size={15} color="#4A5565" />
                         <span>Logout</span>
-                    </NavLink>
+                    </button>
+
 
                     <NavLink
                         to="/help"
